@@ -5,9 +5,10 @@ require("dotenv").config()
 const connectDB = require("./config/db")
 const userRoutes = require("./routes/userRoutes")
 const productRoutes = require("./routes/productRoutes")
+const cartRoutes = require("./routes/cartRoutes")
 const { swaggerUi, swaggerSpec } = require("./swagger")
 
-const app = express()
+const app = express() // ✅ PRIMERO se crea app
 
 // Conexión a DB
 connectDB()
@@ -19,8 +20,9 @@ app.use(express.json())
 // Rutas
 app.use("/api/user", userRoutes)
 app.use("/api/product", productRoutes)
+app.use("/api/cart", cartRoutes) // ✅ AHORA sí
 
-// Ruta raíz (para Render / verificación)
+// Ruta raíz
 app.get("/", (req, res) => {
   res.json({ message: "API funcionando correctamente" })
 })
@@ -28,7 +30,7 @@ app.get("/", (req, res) => {
 // Swagger
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec))
 
-// Puerto (Render usa process.env.PORT)
+// Puerto
 const PORT = process.env.PORT || 3000
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)

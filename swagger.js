@@ -5,13 +5,15 @@ const options = {
   definition: {
     openapi: "3.0.0",
     info: {
-      title: "Proyecto 6 API",
+      title: "Proyecto 7 eCommerce API",
       version: "1.0.0",
-      description: "API con JWT, MongoDB y Express"
+      description: "API con JWT, Roles, Carrito y Stripe"
     },
     servers: [
       {
-        url: "http://localhost:3000"
+        url: process.env.NODE_ENV === "production"
+          ? "https://TU-URL-DE-RENDER.onrender.com"
+          : "http://localhost:3000"
       }
     ],
     components: {
@@ -29,10 +31,14 @@ const options = {
       }
     ]
   },
-  apis: ["./routes/*.js"] // donde están tus rutas
+
+  // Swagger leerá todos los archivos dentro de routes
+  apis: ["./routes/*.js"]
 }
+
+const swaggerSpec = swaggerJsdoc(options)
 
 module.exports = {
   swaggerUi,
-  swaggerSpec: swaggerJsdoc(options)
+  swaggerSpec
 }
