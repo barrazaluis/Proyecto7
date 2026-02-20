@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const auth = require("../middleware/authorization");
+const isAdmin = require("../middleware/isAdmin");
 const {
   createProduct,
   readAll,
@@ -42,7 +43,7 @@ const {
  *       201:
  *         description: Producto creado
  */
-router.post("/create", auth, createProduct);
+router.post("/create", auth, isAdmin, createProduct);
 
 /**
  * @swagger
@@ -76,6 +77,7 @@ router.get("/readall", readAll);
  */
 router.get("/readone/:id", readOne);
 
+
 /**
  * @swagger
  * /api/product/update/{id}:
@@ -100,7 +102,8 @@ router.get("/readone/:id", readOne);
  *       200:
  *         description: Producto actualizado
  */
-router.put("/update/:id", auth, updateProduct);
+
+router.put("/update/:id", auth, isAdmin, updateProduct);
 
 /**
  * @swagger
@@ -120,6 +123,6 @@ router.put("/update/:id", auth, updateProduct);
  *       200:
  *         description: Producto eliminado
  */
-router.delete("/delete/:id", auth, deleteProduct);
+router.delete("/delete/:id", auth, isAdmin, deleteProduct);
 
 module.exports = router;
