@@ -11,7 +11,7 @@ const options = {
     },
     servers: [
       {
-        url: "https://proyecto-6-3c7e.onrender.com/"
+        url: "http://localhost:3000"
       }
     ],
     components: {
