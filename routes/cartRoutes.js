@@ -1,9 +1,12 @@
 const express = require("express")
 const router = express.Router()
 const auth = require("../middleware/authorization")
+
 const {
   addToCart,
-  getCart
+  getCart,
+  removeFromCart,
+  clearCart
 } = require("../controllers/cartController")
 
 /**
@@ -58,5 +61,43 @@ router.post("/add", auth, addToCart)
  *         description: No autorizado
  */
 router.get("/", auth, getCart)
+
+/**
+ * @swagger
+ * /api/cart/remove/{productId}:
+ *   delete:
+ *     summary: Eliminar un producto del carrito
+ *     tags: [Cart]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: productId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Producto eliminado del carrito
+ *       401:
+ *         description: No autorizado
+ */
+router.delete("/remove/:productId", auth, removeFromCart)
+
+/**
+ * @swagger
+ * /api/cart/clear:
+ *   delete:
+ *     summary: Vaciar carrito
+ *     tags: [Cart]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Carrito vaciado
+ *       401:
+ *         description: No autorizado
+ */
+router.delete("/clear", auth, clearCart)
 
 module.exports = router
