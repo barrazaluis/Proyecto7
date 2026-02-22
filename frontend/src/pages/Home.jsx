@@ -3,10 +3,36 @@ import vestuario from "../assets/img/vestuario.png";
 import accesorios from "../assets/img/accesorios.png";
 import calzado from "../assets/img/calzado.png";
 
+import ProductCard from "../components/ProductCard";
+
 export default function Home() {
+
+  // Productos para el carrito
+  const products = [
+    {
+      id: 1,
+      name: "Mochila Outdoor",
+      price: 39990,
+      image: vestuario
+    },
+    {
+      id: 2,
+      name: "Carpa 2 Personas",
+      price: 89990,
+      image: accesorios
+    },
+    {
+      id: 3,
+      name: "Zapatillas Trekking",
+      price: 69990,
+      image: calzado
+    }
+  ];
+
   return (
     <main>
 
+      {/* HERO */}
       <section className="hero-section">
         <div className="hero-content">
           <h1 className="hero-title">
@@ -17,36 +43,27 @@ export default function Home() {
             Descubre nuestra colección outdoor.
           </p>
 
-          <a href="/products" className="btn btn-secondary">
+          <a href="#Productos" className="btn btn-secondary">
             Ver productos
           </a>
         </div>
 
         <div className="hero-image-container">
-          <img src={hero} className="hero-img" />
+          <img src={hero} className="hero-img" alt="Hero" />
         </div>
       </section>
 
-      <section id="Productos">
+      {/* PRODUCTOS */}
+      <section id="Productos" className="productos-section">
         <h2 className="productos-title">Productos</h2>
 
         <div className="productos-grid">
-
-          <div className="product-card">
-            <img src={vestuario} />
-            <h3>Vestuario</h3>
-          </div>
-
-          <div className="product-card">
-            <img src={accesorios} />
-            <h3>Accesorios</h3>
-          </div>
-
-          <div className="product-card">
-            <img src={calzado} />
-            <h3>Calzado</h3>
-          </div>
-
+          {products.map((product) => (
+            <ProductCard
+              key={product.id}
+              product={product}
+            />
+          ))}
         </div>
       </section>
 

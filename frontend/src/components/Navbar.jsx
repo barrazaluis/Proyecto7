@@ -1,10 +1,17 @@
 import logo from "../assets/img/NomadaOutdoor.png";
 import { useState } from "react";
 import LoginModal from "./LoginModal";
+import CartDrawer from "./CartDrawer";
+import { useCart } from "../context/CartContext";
 
 export default function Navbar() {
 
+  // ✅ estados dentro del componente
   const [showLogin, setShowLogin] = useState(false);
+  const [showCart, setShowCart] = useState(false);
+
+  // ✅ contexto carrito
+  const { cart } = useCart();
 
   return (
     <>
@@ -16,31 +23,47 @@ export default function Navbar() {
 
         <nav className="main-nav">
           <ul className="navbar-items">
-            <li><a href="#Inicio">Inicio</a></li>
-            <li><a href="#Productos">Productos</a></li>
-            <li><a href="#Nosotros">Nosotros</a></li>
+            <li><a href="/">Inicio</a></li>
             <li><a href="/contact">Contacto</a></li>
           </ul>
         </nav>
 
         <div className="auth-buttons">
-          <a href="/register" className="btn-auth">Registrarse</a>
 
-          {/* ✅ botón React */}
+          <a href="/register" className="btn-auth">
+            Registrarse
+          </a>
+
+          {/* LOGIN */}
           <button
             className="btn-auth"
             onClick={() => setShowLogin(true)}
           >
             Iniciar sesión
           </button>
+
+          {/* CARRITO */}
+          <button
+            className="btn-auth"
+            onClick={() => setShowCart(true)}
+          >
+            🛒 ({cart.length})
+          </button>
+
         </div>
 
       </header>
 
-      {/* ✅ Modal */}
+      {/* MODAL LOGIN */}
       <LoginModal
         show={showLogin}
         onClose={() => setShowLogin(false)}
+      />
+
+      {/* CARRITO */}
+      <CartDrawer
+        show={showCart}
+        onClose={() => setShowCart(false)}
       />
     </>
   );
