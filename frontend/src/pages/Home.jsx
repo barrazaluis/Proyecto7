@@ -35,8 +35,8 @@ export default function Home() {
       {/* HERO */}
       <section className="hero-section" id="Inicio">
         <div className="hero-content">
-          <h1 className="hero-title">Comunica tu espíritu aventurero</h1>
-          <p className="hero-subtitle">Descubre nuestra colección outdoor.</p>
+          <h1 className="hero-title">Descubre tu espíritu aventurero</h1>
+          <p className="hero-subtitle">Conoce nuestra nueva colección.</p>
 
           <a href="#Productos" className="btn btn-secondary">
             Ver productos
