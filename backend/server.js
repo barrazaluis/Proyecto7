@@ -9,6 +9,7 @@ const cartRoutes = require("./routes/cartRoutes")
 const orderRoutes = require("./routes/orderRoutes")
 const { swaggerUi, swaggerSpec } = require("./swagger")
 
+
 const app = express() // ✅ PRIMERO se crea app
 
 // Conexión a DB
@@ -23,6 +24,7 @@ app.use("/api/user", userRoutes)
 app.use("/api/product", productRoutes)
 app.use("/api/cart", cartRoutes) // ✅ AHORA sí
 app.use("/api/order", orderRoutes)
+app.use("/api/user", require("./routes/userRoutes"));
 
 // Ruta raíz
 app.get("/", (req, res) => {

@@ -77,3 +77,48 @@ exports.updateUser = async (req, res) => {
     res.status(500).json({ error })
   }
 }
+
+// ✅ NUEVO: PUT /api/user/address
+exports.updateAddress = async (req, res) => {
+  try {
+    const { address } = req.body
+
+    if (!address || typeof address !== "object") {
+      return res.status(400).json({ msg: "Debe enviar address como objeto" })
+    }
+
+    // Lista blanca para evitar que te manden campos raros
+    const allowed = [
+      "fullName",
+      "phone",
+      "rut",
+      "street",
+      "number",
+      "apartment",
+      "commune",
+      "city",
+      "region",
+      "postalCode",
+      "notes"
+    ]
+
+    const sanitizedAddress = {}
+    for (const key of allowed) {
+      if (address[key] !== undefined) sanitizedAddress[key] = address[key]
+    }
+
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { $set: { address: sanitizedAddress } },
+      { new: true }
+    ).select("-password")
+
+    if (!user) {
+      return res.status(404).json({ msg: "Usuario no encontrado" })
+    }
+
+    res.json({ msg: "Dirección actualizada", user })
+  } catch (error) {
+    res.status(500).json({ error })
+  }
+}

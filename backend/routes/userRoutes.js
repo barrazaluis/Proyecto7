@@ -5,7 +5,8 @@ const {
   register,
   login,
   verifyToken,
-  updateUser
+  updateUser,
+  updateAddress
 } = require("../controllers/userController");
 
 /**
@@ -112,5 +113,53 @@ router.get("/verifytoken", auth, verifyToken);
  *         description: Usuario actualizado
  */
 router.put("/update", auth, updateUser);
+
+/**
+ * @swagger
+ * /api/user/address:
+ *   put:
+ *     summary: Actualizar dirección del usuario
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               address:
+ *                 type: object
+ *                 properties:
+ *                   fullName:
+ *                     type: string
+ *                   phone:
+ *                     type: string
+ *                   rut:
+ *                     type: string
+ *                   street:
+ *                     type: string
+ *                   number:
+ *                     type: string
+ *                   apartment:
+ *                     type: string
+ *                   commune:
+ *                     type: string
+ *                   city:
+ *                     type: string
+ *                   region:
+ *                     type: string
+ *                   postalCode:
+ *                     type: string
+ *                   notes:
+ *                     type: string
+ *     responses:
+ *       200:
+ *         description: Dirección actualizada
+ *       401:
+ *         description: Token inválido o no enviado
+ */
+router.put("/address", auth, updateAddress);
 
 module.exports = router;
