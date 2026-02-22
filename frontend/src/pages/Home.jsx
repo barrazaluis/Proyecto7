@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import hero from "../assets/img/hero.png";
 import ProductCard from "../components/ProductCard";
 
-const API_BASE = "http://localhost:5000"; // cambia si tu backend usa otro puerto
+const API_BASE = import.meta.env.VITE_API_URL;
 
 export default function Home() {
   const [products, setProducts] = useState([]);
