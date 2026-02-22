@@ -1,34 +1,63 @@
 import { useState } from "react";
+import { useAuth } from "../context/AuthContext";
 
-function LoginModal({ show, onClose }) {
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
-  // 👇 ESTADOS (AQUÍ VA LA VALIDACIÓN)
-  const [correo, setCorreo] = useState("");
+export default function LoginModal({ show, onClose }) {
+  const { login } = useAuth();
+
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   if (!show) return null;
 
-  // 👇 FUNCION QUE VALIDA
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
 
-    if (!correo.trim() || !password.trim()) {
+    if (!email.trim() || !password.trim()) {
       setError("Debe completar todos los campos");
       return;
     }
 
-    setError("");
-    alert("Login correcto (ejemplo)");
+    try {
+      setLoading(true);
+
+      const res = await fetch(`${API_URL}/api/user/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: email.trim().toLowerCase(),
+          password
+        })
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.message || "Credenciales inválidas");
+
+      // ✅ Ajusta esto a lo que devuelva tu backend:
+      // Ideal: { token, user: { username, email, ... } }
+      const token = data.token;
+      const user = data.user || { email: email.trim().toLowerCase() };
+
+      if (!token) throw new Error("El backend no devolvió token.");
+
+      login({ token, user }); // ✅ ahora sí existe
+      onClose();
+    } catch (err) {
+      setError(err.message || "Error iniciando sesión");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <>
-      {/* Fondo */}
       <div className="modal-backdrop fade show"></div>
 
-      {/* Modal */}
-      <div className="modal fade show d-block" tabIndex="-1">
+      <div className="modal fade show d-block" tabIndex="-1" role="dialog">
         <div className="modal-dialog modal-dialog-centered">
           <div className="modal-content">
 
@@ -38,17 +67,14 @@ function LoginModal({ show, onClose }) {
             </div>
 
             <div className="modal-body">
-
-              {/* 👇 FORMULARIO CON VALIDACIÓN */}
               <form onSubmit={handleSubmit}>
-
                 <div className="mb-3">
                   <label className="form-label">Correo</label>
                   <input
                     type="email"
                     className="form-control"
-                    value={correo}
-                    onChange={(e) => setCorreo(e.target.value)}
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     placeholder="correo@ejemplo.com"
                   />
                 </div>
@@ -63,19 +89,12 @@ function LoginModal({ show, onClose }) {
                   />
                 </div>
 
-                {/* 👇 MENSAJE DE ERROR */}
-                {error && (
-                  <div className="alert alert-danger">
-                    {error}
-                  </div>
-                )}
+                {error && <div className="alert alert-danger">{error}</div>}
 
-                <button type="submit" className="btn btn-primary w-100">
-                  Iniciar sesión
+                <button type="submit" className="btn btn-primary w-100" disabled={loading}>
+                  {loading ? "Ingresando..." : "Iniciar sesión"}
                 </button>
-
               </form>
-
             </div>
 
           </div>
@@ -84,5 +103,3 @@ function LoginModal({ show, onClose }) {
     </>
   );
 }
-
-export default LoginModal;
