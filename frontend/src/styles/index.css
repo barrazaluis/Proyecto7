@@ -432,3 +432,11 @@ body {
   padding: 1rem;
   border-top: 1px solid #ddd;
 }
+.productos-title {
+  font-size: 2rem;
+  text-align: center;
+  margin-bottom: 1.5rem;
+  margin-top: 1.5rem;
+  color: var(--color-black);
+  font-weight: 700; /* ← Esto lo hace bold */
+}

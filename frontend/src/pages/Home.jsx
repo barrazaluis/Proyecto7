@@ -50,7 +50,7 @@ export default function Home() {
 
       {/* PRODUCTOS */}
       <section id="Productos" className="productos-section">
-        <h2 className="productos-title">Productos</h2>
+        <h2 className="productos-title">Productos Nómada</h2>
 
         {loading && <p style={{ padding: "0 5%" }}>Cargando productos…</p>}
         {errorMsg && (
