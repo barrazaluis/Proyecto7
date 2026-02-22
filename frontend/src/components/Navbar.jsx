@@ -2,7 +2,7 @@ import logo from "../assets/img/NomadaOutdoor.png";
 import { useState } from "react";
 import LoginModal from "./LoginModal";
 import CartDrawer from "./CartDrawer";
-import { useCart } from "../context/CartContext";
+import { useCart } from "../context/useCart";
 
 export default function Navbar() {
 

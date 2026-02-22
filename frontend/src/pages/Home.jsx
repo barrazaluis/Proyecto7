@@ -1,47 +1,42 @@
+import { useEffect, useState } from "react";
 import hero from "../assets/img/hero.png";
-import vestuario from "../assets/img/vestuario.png";
-import accesorios from "../assets/img/accesorios.png";
-import calzado from "../assets/img/calzado.png";
-
 import ProductCard from "../components/ProductCard";
 
-export default function Home() {
+const API_BASE = "http://localhost:5000"; // cambia si tu backend usa otro puerto
 
-  // Productos para el carrito
-  const products = [
-    {
-      id: 1,
-      name: "Mochila Outdoor",
-      price: 39990,
-      image: vestuario
-    },
-    {
-      id: 2,
-      name: "Carpa 2 Personas",
-      price: 89990,
-      image: accesorios
-    },
-    {
-      id: 3,
-      name: "Zapatillas Trekking",
-      price: 69990,
-      image: calzado
-    }
-  ];
+export default function Home() {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState("");
+
+  useEffect(() => {
+    const loadProducts = async () => {
+      try {
+        setLoading(true);
+        setErrorMsg("");
+
+        const res = await fetch(`${API_BASE}/api/product/readall`);
+        if (!res.ok) throw new Error("No se pudieron cargar los productos");
+
+        const data = await res.json();
+        setProducts(data);
+      } catch (err) {
+        setErrorMsg(err.message || "Error cargando productos");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadProducts();
+  }, []);
 
   return (
     <main>
-
       {/* HERO */}
-      <section className="hero-section">
+      <section className="hero-section" id="Inicio">
         <div className="hero-content">
-          <h1 className="hero-title">
-            Comunica tu espíritu aventurero
-          </h1>
-
-          <p className="hero-subtitle">
-            Descubre nuestra colección outdoor.
-          </p>
+          <h1 className="hero-title">Comunica tu espíritu aventurero</h1>
+          <p className="hero-subtitle">Descubre nuestra colección outdoor.</p>
 
           <a href="#Productos" className="btn btn-secondary">
             Ver productos
@@ -57,16 +52,19 @@ export default function Home() {
       <section id="Productos" className="productos-section">
         <h2 className="productos-title">Productos</h2>
 
-        <div className="productos-grid">
-          {products.map((product) => (
-            <ProductCard
-              key={product.id}
-              product={product}
-            />
-          ))}
-        </div>
-      </section>
+        {loading && <p style={{ padding: "0 5%" }}>Cargando productos…</p>}
+        {errorMsg && (
+          <p style={{ padding: "0 5%", color: "crimson" }}>{errorMsg}</p>
+        )}
 
+        {!loading && !errorMsg && (
+          <div className="productos-grid">
+            {products.map((product) => (
+              <ProductCard key={product._id} product={product} />
+            ))}
+          </div>
+        )}
+      </section>
     </main>
   );
 }
