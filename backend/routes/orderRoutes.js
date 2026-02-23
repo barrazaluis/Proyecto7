@@ -6,7 +6,8 @@ const {
   checkout,
   confirmPayment,
   getMyOrders,
-  getOrderById
+  getOrderById,
+  mpHealth
 } = require("../controllers/orderController");
 
 /**
@@ -39,6 +40,11 @@ router.post("/checkout", auth, checkout);
 router.post("/confirm", auth, confirmPayment);
 
 /**
+ * ✅ IMPORTANTE: esta ruta debe ir ANTES de "/:id"
+ */
+router.get("/mp-health", mpHealth);
+
+/**
  * @swagger
  * /api/order/myorders:
  *   get:
@@ -61,6 +67,3 @@ router.get("/myorders", auth, getMyOrders);
 router.get("/:id", auth, getOrderById);
 
 module.exports = router;
-
-const { mpHealth } = require("../controllers/orderController");
-router.get("/mp-health", mpHealth);

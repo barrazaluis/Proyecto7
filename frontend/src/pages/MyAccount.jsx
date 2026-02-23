@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { useAuth } from "../context/AuthContext";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
@@ -6,30 +6,58 @@ const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 export default function MyAccount() {
   const { token, user, setUser, logout } = useAuth();
 
+  // -------------------------
+  // PERFIL
+  // -------------------------
   const [profile, setProfile] = useState({
     username: user?.username || "",
     email: user?.email || ""
   });
 
+  // -------------------------
+  // PASSWORD
+  // -------------------------
   const [pwd, setPwd] = useState({
     password: "",
     confirmPassword: ""
   });
 
+  // -------------------------
+  // DIRECCIÓN
+  // -------------------------
+  const emptyAddress = useMemo(
+    () => ({
+      fullName: "",
+      phone: "",
+      rut: "",
+      street: "",
+      number: "",
+      apartment: "",
+      commune: "",
+      city: "",
+      region: "",
+      postalCode: "",
+      notes: ""
+    }),
+    []
+  );
+
   const [address, setAddress] = useState({
-    fullName: user?.address?.fullName || "",
-    phone: user?.address?.phone || "",
-    rut: user?.address?.rut || "",
-    street: user?.address?.street || "",
-    number: user?.address?.number || "",
-    apartment: user?.address?.apartment || "",
-    commune: user?.address?.commune || "",
-    city: user?.address?.city || "",
-    region: user?.address?.region || "",
-    postalCode: user?.address?.postalCode || "",
-    notes: user?.address?.notes || ""
+    ...emptyAddress,
+    ...(user?.address || {})
   });
 
+  const [editingAddress, setEditingAddress] = useState(false);
+
+  // -------------------------
+  // HISTORIAL ÓRDENES
+  // -------------------------
+  const [orders, setOrders] = useState([]);
+  const [loadingOrders, setLoadingOrders] = useState(false);
+
+  // -------------------------
+  // UI states
+  // -------------------------
   const [msg, setMsg] = useState({ type: "", text: "" });
   const [loadingProfile, setLoadingProfile] = useState(false);
   const [loadingPwd, setLoadingPwd] = useState(false);
@@ -40,6 +68,22 @@ export default function MyAccount() {
     setTimeout(() => setMsg({ type: "", text: "" }), 2500);
   };
 
+  // ✅ Si cambia user, refrescamos profile y address
+  useEffect(() => {
+    setProfile({
+      username: user?.username || "",
+      email: user?.email || ""
+    });
+
+    setAddress({
+      ...emptyAddress,
+      ...(user?.address || {})
+    });
+  }, [user, emptyAddress]);
+
+  // -------------------------
+  // Handlers
+  // -------------------------
   const onProfileChange = (e) => {
     setProfile((p) => ({ ...p, [e.target.name]: e.target.value }));
   };
@@ -52,7 +96,9 @@ export default function MyAccount() {
     setAddress((a) => ({ ...a, [e.target.name]: e.target.value }));
   };
 
-  // ✅ Actualiza username/email
+  // -------------------------
+  // API: Perfil
+  // -------------------------
   const saveProfile = async (e) => {
     e.preventDefault();
     setMsg({ type: "", text: "" });
@@ -91,7 +137,9 @@ export default function MyAccount() {
     }
   };
 
-  // ✅ Cambia password usando mismo endpoint
+  // -------------------------
+  // API: Password
+  // -------------------------
   const changePassword = async (e) => {
     e.preventDefault();
     setMsg({ type: "", text: "" });
@@ -120,9 +168,7 @@ export default function MyAccount() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify({
-          password: pwd.password
-        })
+        body: JSON.stringify({ password: pwd.password })
       });
 
       const data = await res.json().catch(() => ({}));
@@ -137,12 +183,13 @@ export default function MyAccount() {
     }
   };
 
-  // ✅ Guarda dirección usando PUT /api/user/address
+  // -------------------------
+  // API: Dirección
+  // -------------------------
   const saveAddress = async (e) => {
     e.preventDefault();
     setMsg({ type: "", text: "" });
 
-    // Validación mínima (ajústala a gusto)
     if (!address.street.trim() || !address.number.trim() || !address.commune.trim()) {
       showMsg("danger", "Completa al menos Calle, Número y Comuna.");
       return;
@@ -177,25 +224,10 @@ export default function MyAccount() {
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.msg || data.message || "No se pudo actualizar la dirección.");
 
-      // updateAddress devuelve { msg, user }
       const updatedUser = data.user || data;
-      if (updatedUser) {
-        setUser(updatedUser);
-        setAddress({
-          fullName: updatedUser?.address?.fullName || "",
-          phone: updatedUser?.address?.phone || "",
-          rut: updatedUser?.address?.rut || "",
-          street: updatedUser?.address?.street || "",
-          number: updatedUser?.address?.number || "",
-          apartment: updatedUser?.address?.apartment || "",
-          commune: updatedUser?.address?.commune || "",
-          city: updatedUser?.address?.city || "",
-          region: updatedUser?.address?.region || "",
-          postalCode: updatedUser?.address?.postalCode || "",
-          notes: updatedUser?.address?.notes || ""
-        });
-      }
+      if (updatedUser) setUser(updatedUser);
 
+      setEditingAddress(false);
       showMsg("success", data.msg || "Dirección actualizada ✅");
     } catch (err) {
       showMsg("danger", err.message || "Error actualizando dirección.");
@@ -204,6 +236,56 @@ export default function MyAccount() {
     }
   };
 
+  // -------------------------
+  // Resumen dirección
+  // -------------------------
+  const hasAddress = Object.values(user?.address || {}).some(
+    (v) => String(v || "").trim().length > 0
+  );
+
+  const addressSummary = () => {
+    if (!hasAddress) return "Aún no has configurado una dirección.";
+
+    const a = user?.address || {};
+    const line1 = `${a.street || ""} ${a.number || ""}`.trim();
+    const line2 = [a.apartment, a.commune, a.city].filter(Boolean).join(", ");
+    const line3 = [a.region, a.postalCode].filter(Boolean).join(" · ");
+
+    return [a.fullName, line1, line2, line3, a.phone].filter(Boolean).join("\n");
+  };
+
+  // -------------------------
+  // ✅ API: Órdenes
+  // -------------------------
+  const loadOrders = useCallback(async () => {
+    if (!token) return;
+
+    try {
+      setLoadingOrders(true);
+
+      const res = await fetch(`${API_URL}/api/order/myorders`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      const data = await res.json().catch(() => []);
+      if (!res.ok) throw new Error(data.message || "No se pudieron cargar las órdenes.");
+
+      setOrders(Array.isArray(data) ? data : []);
+    } catch (e) {
+      console.error(e);
+      setOrders([]);
+    } finally {
+      setLoadingOrders(false);
+    }
+  }, [token]);
+
+  useEffect(() => {
+    loadOrders();
+  }, [loadOrders]);
+
+  // -------------------------
+  // Render
+  // -------------------------
   return (
     <div className="container py-5" style={{ maxWidth: 980 }}>
       <div className="d-flex justify-content-between align-items-center mb-3">
@@ -250,7 +332,7 @@ export default function MyAccount() {
           </div>
         </div>
 
-        {/* CAMBIAR CONTRASEÑA */}
+        {/* PASSWORD */}
         <div className="col-12 col-lg-6">
           <div className="card p-4 shadow-sm">
             <h5 className="fw-bold mb-3">Cambiar contraseña</h5>
@@ -285,140 +367,219 @@ export default function MyAccount() {
           </div>
         </div>
 
-        {/* DIRECCIÓN */}
+        {/* DIRECCIÓN: VISTA vs EDITAR */}
         <div className="col-12 col-lg-6">
           <div className="card p-4 shadow-sm">
-            <h5 className="fw-bold mb-3">Dirección</h5>
-
-            <form onSubmit={saveAddress}>
-              <div className="row g-3">
-                <div className="col-12">
-                  <label className="form-label">Nombre completo</label>
-                  <input
-                    name="fullName"
-                    className="form-control"
-                    value={address.fullName}
-                    onChange={onAddressChange}
-                  />
-                </div>
-
-                <div className="col-12 col-md-6">
-                  <label className="form-label">Teléfono</label>
-                  <input
-                    name="phone"
-                    className="form-control"
-                    value={address.phone}
-                    onChange={onAddressChange}
-                  />
-                </div>
-
-                <div className="col-12 col-md-6">
-                  <label className="form-label">RUT (opcional)</label>
-                  <input
-                    name="rut"
-                    className="form-control"
-                    value={address.rut}
-                    onChange={onAddressChange}
-                  />
-                </div>
-
-                <div className="col-12 col-md-8">
-                  <label className="form-label">Calle</label>
-                  <input
-                    name="street"
-                    className="form-control"
-                    value={address.street}
-                    onChange={onAddressChange}
-                  />
-                </div>
-
-                <div className="col-12 col-md-4">
-                  <label className="form-label">Número</label>
-                  <input
-                    name="number"
-                    className="form-control"
-                    value={address.number}
-                    onChange={onAddressChange}
-                  />
-                </div>
-
-                <div className="col-12">
-                  <label className="form-label">Depto/Casa</label>
-                  <input
-                    name="apartment"
-                    className="form-control"
-                    value={address.apartment}
-                    onChange={onAddressChange}
-                  />
-                </div>
-
-                <div className="col-12 col-md-6">
-                  <label className="form-label">Comuna</label>
-                  <input
-                    name="commune"
-                    className="form-control"
-                    value={address.commune}
-                    onChange={onAddressChange}
-                  />
-                </div>
-
-                <div className="col-12 col-md-6">
-                  <label className="form-label">Ciudad</label>
-                  <input
-                    name="city"
-                    className="form-control"
-                    value={address.city}
-                    onChange={onAddressChange}
-                  />
-                </div>
-
-                <div className="col-12 col-md-6">
-                  <label className="form-label">Región</label>
-                  <input
-                    name="region"
-                    className="form-control"
-                    value={address.region}
-                    onChange={onAddressChange}
-                  />
-                </div>
-
-                <div className="col-12 col-md-6">
-                  <label className="form-label">Código Postal</label>
-                  <input
-                    name="postalCode"
-                    className="form-control"
-                    value={address.postalCode}
-                    onChange={onAddressChange}
-                  />
-                </div>
-
-                <div className="col-12">
-                  <label className="form-label">Notas</label>
-                  <textarea
-                    name="notes"
-                    className="form-control"
-                    rows="3"
-                    value={address.notes}
-                    onChange={onAddressChange}
-                  />
-                </div>
+            <div className="d-flex justify-content-between align-items-start mb-2">
+              <div>
+                <h5 className="fw-bold mb-1">Dirección</h5>
+                {!editingAddress && (
+                  <small className="text-muted">
+                    {hasAddress ? "Dirección configurada" : "Sin dirección"}
+                  </small>
+                )}
               </div>
 
-              <button className="btn btn-primary w-100 mt-3" disabled={loadingAddress}>
-                {loadingAddress ? "Guardando..." : "Guardar dirección"}
-              </button>
-            </form>
+              {!editingAddress ? (
+                <button
+                  className="btn btn-outline-primary btn-sm"
+                  onClick={() => setEditingAddress(true)}
+                >
+                  {hasAddress ? "Cambiar" : "Agregar"}
+                </button>
+              ) : (
+                <button
+                  className="btn btn-outline-secondary btn-sm"
+                  onClick={() => {
+                    setEditingAddress(false);
+                    setAddress({ ...emptyAddress, ...(user?.address || {}) });
+                  }}
+                >
+                  Cancelar
+                </button>
+              )}
+            </div>
+
+            {!editingAddress ? (
+              <pre className="mb-0" style={{ whiteSpace: "pre-wrap" }}>
+                {addressSummary()}
+              </pre>
+            ) : (
+              <form onSubmit={saveAddress}>
+                <div className="row g-3">
+                  <div className="col-12">
+                    <label className="form-label">Nombre completo</label>
+                    <input
+                      name="fullName"
+                      className="form-control"
+                      value={address.fullName}
+                      onChange={onAddressChange}
+                    />
+                  </div>
+
+                  <div className="col-12 col-md-6">
+                    <label className="form-label">Teléfono</label>
+                    <input
+                      name="phone"
+                      className="form-control"
+                      value={address.phone}
+                      onChange={onAddressChange}
+                    />
+                  </div>
+
+                  <div className="col-12 col-md-6">
+                    <label className="form-label">RUT (opcional)</label>
+                    <input
+                      name="rut"
+                      className="form-control"
+                      value={address.rut}
+                      onChange={onAddressChange}
+                    />
+                  </div>
+
+                  <div className="col-12 col-md-8">
+                    <label className="form-label">Calle</label>
+                    <input
+                      name="street"
+                      className="form-control"
+                      value={address.street}
+                      onChange={onAddressChange}
+                    />
+                  </div>
+
+                  <div className="col-12 col-md-4">
+                    <label className="form-label">Número</label>
+                    <input
+                      name="number"
+                      className="form-control"
+                      value={address.number}
+                      onChange={onAddressChange}
+                    />
+                  </div>
+
+                  <div className="col-12">
+                    <label className="form-label">Depto/Casa</label>
+                    <input
+                      name="apartment"
+                      className="form-control"
+                      value={address.apartment}
+                      onChange={onAddressChange}
+                    />
+                  </div>
+
+                  <div className="col-12 col-md-6">
+                    <label className="form-label">Comuna</label>
+                    <input
+                      name="commune"
+                      className="form-control"
+                      value={address.commune}
+                      onChange={onAddressChange}
+                    />
+                  </div>
+
+                  <div className="col-12 col-md-6">
+                    <label className="form-label">Ciudad</label>
+                    <input
+                      name="city"
+                      className="form-control"
+                      value={address.city}
+                      onChange={onAddressChange}
+                    />
+                  </div>
+
+                  <div className="col-12 col-md-6">
+                    <label className="form-label">Región</label>
+                    <input
+                      name="region"
+                      className="form-control"
+                      value={address.region}
+                      onChange={onAddressChange}
+                    />
+                  </div>
+
+                  <div className="col-12 col-md-6">
+                    <label className="form-label">Código Postal</label>
+                    <input
+                      name="postalCode"
+                      className="form-control"
+                      value={address.postalCode}
+                      onChange={onAddressChange}
+                    />
+                  </div>
+
+                  <div className="col-12">
+                    <label className="form-label">Notas</label>
+                    <textarea
+                      name="notes"
+                      className="form-control"
+                      rows="3"
+                      value={address.notes}
+                      onChange={onAddressChange}
+                    />
+                  </div>
+                </div>
+
+                <button className="btn btn-primary w-100 mt-3" disabled={loadingAddress}>
+                  {loadingAddress ? "Guardando..." : "Guardar dirección"}
+                </button>
+              </form>
+            )}
           </div>
         </div>
 
-        {/* HISTORIAL (placeholder) */}
+        {/* HISTORIAL */}
         <div className="col-12 col-lg-6">
           <div className="card p-4 shadow-sm">
-            <h5 className="fw-bold mb-2">Historial de compras</h5>
-            <p className="text-muted mb-0">
-              Aún no hay endpoint de órdenes. Cuando agregues
-              <code> GET /api/order/myorders</code> lo mostramos aquí.
-            </p>
+            <div className="d-flex justify-content-between align-items-center mb-2">
+              <h5 className="fw-bold mb-0">Historial de compras</h5>
+              <button
+                className="btn btn-outline-secondary btn-sm"
+                onClick={loadOrders}
+                disabled={loadingOrders}
+              >
+                {loadingOrders ? "Cargando..." : "Recargar"}
+              </button>
+            </div>
+
+            {loadingOrders ? (
+              <p className="text-muted mb-0">Cargando órdenes...</p>
+            ) : orders.length === 0 ? (
+              <p className="text-muted mb-0">Aún no tienes compras registradas.</p>
+            ) : (
+              <div className="d-flex flex-column gap-3">
+                {orders.map((o) => (
+                  <div key={o._id} className="border rounded p-3">
+                    <div className="d-flex justify-content-between">
+                      <span className="fw-semibold">Orden #{o._id.slice(-6)}</span>
+                      <span
+                        className={`badge ${
+                          o.status === "paid" ? "bg-success" : "bg-warning text-dark"
+                        }`}
+                      >
+                        {o.status}
+                      </span>
+                    </div>
+
+                    <div className="text-muted small mt-1">
+                      Total: ${Number(o.total || 0).toLocaleString("es-CL")}
+                    </div>
+
+                    <div className="mt-2">
+                      {o.products?.map((p, idx) => (
+                        <div key={idx} className="d-flex justify-content-between small">
+                          <span>
+                            {p.product?.name || "Producto"} x {p.quantity}
+                          </span>
+                          <span>
+                            ${Number((p.price || 0) * (p.quantity || 1)).toLocaleString("es-CL")}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
