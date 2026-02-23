@@ -1,41 +1,33 @@
-const express = require("express")
-const cors = require("cors")
-require("dotenv").config()
+const express = require("express");
+const cors = require("cors");
+require("dotenv").config();
 
-const connectDB = require("./config/db")
-const userRoutes = require("./routes/userRoutes")
-const productRoutes = require("./routes/productRoutes")
-const cartRoutes = require("./routes/cartRoutes")
-const orderRoutes = require("./routes/orderRoutes")
-const { swaggerUi, swaggerSpec } = require("./swagger")
+const connectDB = require("./config/db");
+const userRoutes = require("./routes/userRoutes");
+const productRoutes = require("./routes/productRoutes");
+const cartRoutes = require("./routes/cartRoutes");
+const orderRoutes = require("./routes/orderRoutes");
+const { swaggerUi, swaggerSpec } = require("./swagger");
 
+const app = express();
 
-const app = express() // ✅ PRIMERO se crea app
+connectDB();
 
-// Conexión a DB
-connectDB()
+app.use(cors());
+app.use(express.json());
 
-// Middlewares
-app.use(cors())
-app.use(express.json())
+app.use("/api/user", userRoutes);
+app.use("/api/product", productRoutes);
+app.use("/api/cart", cartRoutes);
+app.use("/api/order", orderRoutes);
 
-// Rutas
-app.use("/api/user", userRoutes)
-app.use("/api/product", productRoutes)
-app.use("/api/cart", cartRoutes) // ✅ AHORA sí
-app.use("/api/order", orderRoutes)
-app.use("/api/user", require("./routes/userRoutes"));
-
-// Ruta raíz
 app.get("/", (req, res) => {
-  res.json({ message: "API funcionando correctamente" })
-})
+  res.json({ message: "API funcionando correctamente" });
+});
 
-// Swagger
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec))
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-// Puerto
-const PORT = process.env.PORT || 3000
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`)
-})
+  console.log(`Server running on port ${PORT}`);
+});

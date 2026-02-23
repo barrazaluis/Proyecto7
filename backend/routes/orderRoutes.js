@@ -1,12 +1,13 @@
-const express = require("express")
-const router = express.Router()
-const auth = require("../middleware/authorization")
+const express = require("express");
+const router = express.Router();
+const auth = require("../middleware/authorization");
 
 const {
   checkout,
+  confirmPayment,
   getMyOrders,
   getOrderById
-} = require("../controllers/orderController")
+} = require("../controllers/orderController");
 
 /**
  * @swagger
@@ -19,12 +20,23 @@ const {
  * @swagger
  * /api/order/checkout:
  *   post:
- *     summary: Realizar checkout
+ *     summary: Iniciar checkout (MercadoPago) y obtener link de pago
  *     tags: [Orders]
  *     security:
  *       - bearerAuth: []
  */
-router.post("/checkout", auth, checkout)
+router.post("/checkout", auth, checkout);
+
+/**
+ * @swagger
+ * /api/order/confirm:
+ *   post:
+ *     summary: Confirmar pago (MercadoPago) y crear orden
+ *     tags: [Orders]
+ *     security:
+ *       - bearerAuth: []
+ */
+router.post("/confirm", auth, confirmPayment);
 
 /**
  * @swagger
@@ -35,7 +47,7 @@ router.post("/checkout", auth, checkout)
  *     security:
  *       - bearerAuth: []
  */
-router.get("/myorders", auth, getMyOrders)
+router.get("/myorders", auth, getMyOrders);
 
 /**
  * @swagger
@@ -46,6 +58,9 @@ router.get("/myorders", auth, getMyOrders)
  *     security:
  *       - bearerAuth: []
  */
-router.get("/:id", auth, getOrderById)
+router.get("/:id", auth, getOrderById);
 
-module.exports = router
+module.exports = router;
+
+const { mpHealth } = require("../controllers/orderController");
+router.get("/mp-health", mpHealth);

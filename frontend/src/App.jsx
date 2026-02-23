@@ -8,6 +8,11 @@ import Checkout from "./pages/Checkout";
 import MyAccount from "./pages/MyAccount";
 import ProtectedRoute from "./components/ProtectedRoute";
 
+// ✅ NUEVO: páginas retorno MercadoPago
+import CheckoutSuccess from "./pages/CheckoutSuccess";
+import CheckoutFailure from "./pages/CheckoutFailure";
+import CheckoutPending from "./pages/CheckoutPending";
+
 function App() {
   return (
     <BrowserRouter>
@@ -17,15 +22,31 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/register" element={<Register />} />
         <Route path="/contact" element={<Contact />} />
+
+        {/* Checkout */}
         <Route path="/checkout" element={<Checkout />} />
+
+        {/* ✅ Retornos MercadoPago */}
         <Route
-        path="/account"
-        element={
-          <ProtectedRoute>
-            <MyAccount />
-          </ProtectedRoute>
-        }
-/>
+          path="/checkout/success"
+          element={
+            <ProtectedRoute>
+              <CheckoutSuccess />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/checkout/failure" element={<CheckoutFailure />} />
+        <Route path="/checkout/pending" element={<CheckoutPending />} />
+
+        {/* Mi cuenta */}
+        <Route
+          path="/account"
+          element={
+            <ProtectedRoute>
+              <MyAccount />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
 
       <Footer />
