@@ -8,7 +8,6 @@ import Checkout from "./pages/Checkout";
 import MyAccount from "./pages/MyAccount";
 import ProtectedRoute from "./components/ProtectedRoute";
 
-// ✅ NUEVO: páginas retorno MercadoPago
 import CheckoutSuccess from "./pages/CheckoutSuccess";
 import CheckoutFailure from "./pages/CheckoutFailure";
 import CheckoutPending from "./pages/CheckoutPending";
@@ -35,9 +34,9 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route path="/checkout/success" element={<CheckoutSuccess />} />
         <Route path="/checkout/failure" element={<CheckoutFailure />} />
         <Route path="/checkout/pending" element={<CheckoutPending />} />
-
         {/* Mi cuenta */}
         <Route
           path="/account"
