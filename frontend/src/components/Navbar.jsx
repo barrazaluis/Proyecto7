@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import LoginModal from "./LoginModal";
 import CartDrawer from "./CartDrawer";
-import { useCart } from "../context/useCart";
+import { useCart } from "../context/UseCart";
 import { useAuth } from "../context/AuthContext";
 
 export default function Navbar() {
