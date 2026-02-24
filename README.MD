@@ -90,4 +90,5 @@ El ingreso de nuevos productos se realiza mediante la documentación interactiva
 
 Requiere una **cuenta de administración** (no incluida públicamente).
 
+En caso de requerir información adicional favor solicitar via correo electronico cbarrazaluis@gmail.com
 ---
