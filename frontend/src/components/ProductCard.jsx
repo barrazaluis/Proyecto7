@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useCart } from "../context/useCart";
+import { useCart } from "../context/UseCart.js.old";
 
 export default function ProductCard({ product }) {
   const { addToCart } = useCart();

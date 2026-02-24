@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation, Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { useCart } from "../context/useCart";
+import { useCart } from "../context/UseCart.js.old";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
